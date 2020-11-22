@@ -12,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,8 +23,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.qris.payment.model.ClientUserModel;
 import com.qris.payment.oauth.JwtTokenUtil;
 import com.qris.payment.plugin.CryptoIntra;
+import com.qris.payment.request.JwtResponse;
 import com.qris.payment.service.JwtUserDetailsService;
-
 
 @RestController
 @CrossOrigin
@@ -36,34 +37,43 @@ public class JwtAuthenticationController {
 
 	@Autowired
 	private JwtTokenUtil jwtTokenUtil;
-	
+
 	@Autowired
 	private CryptoIntra generated;
 	@Autowired
 	private JwtUserDetailsService clienservices;
-	
+
 	@RequestMapping(value = "/auth/token", method = RequestMethod.POST)
-	public ResponseEntity<?> createAuthenticationToken(@RequestBody String grant_type, HttpServletRequest header)   {
-			String Authorization = header.getHeader("Authorization").substring(6);
-			
-			 ClientUserModel usersClient = clienservices.check(Authorization);
-			
-			return  null;
-			
+	public ResponseEntity<?> createAuthenticationToken(@RequestBody String grant_type, HttpServletRequest header)
+			throws Exception {
+		String Authorization = header.getHeader("I-Sign").substring(6);
+		JwtResponse jwtResponse = new JwtResponse();
+		ClientUserModel usersClient = clienservices.check(Authorization);
+
+		if (usersClient == null) {
+
+			logger.info("Authorization", "Check Authorization not the same");
+
+		}
+
+		authenticate(usersClient.getUsername(), usersClient.getPassworddecode());
+		final UserDetails userDetails = clienservices.loadUserByUsername(usersClient.getUsername());
+		final String token = jwtTokenUtil.generateToken(userDetails);
+		jwtResponse.setJwttoken(token);
+		jwtResponse.setToken_type("Bearer");
+		jwtResponse.setExpires_in(jwtTokenUtil.JWT_TOKEN_VALIDITY);
+
+		return ResponseEntity.ok(jwtResponse);
+
 	}
-	
-	
-	
-	
-	
+
 	@RequestMapping(value = "/register", method = RequestMethod.POST)
-	public ResponseEntity<?> saveUser(@RequestBody JsonNode user, HttpServletRequest request)throws Exception {
-       	 		String clientIpAddress = request.getHeader("X-FORWARDED-FOR");
-				if (clientIpAddress == null || clientIpAddress.equals(""))
-					clientIpAddress = request.getRemoteAddr();
-			return ResponseEntity.ok(clienservices.save(user,clientIpAddress));
+	public ResponseEntity<?> saveUser(@RequestBody JsonNode user, HttpServletRequest request) throws Exception {
+		String clientIpAddress = request.getHeader("X-FORWARDED-FOR");
+		if (clientIpAddress == null || clientIpAddress.equals(""))
+			clientIpAddress = request.getRemoteAddr();
+		return ResponseEntity.ok(clienservices.save(user, clientIpAddress));
 	}
-	
 
 	private void authenticate(String username, String password) throws Exception {
 		try {

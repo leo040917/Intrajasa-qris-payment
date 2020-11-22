@@ -5,5 +5,6 @@ import org.springframework.data.repository.CrudRepository;
 import com.qris.payment.model.ClientUserModel;
 
 public interface ClienRepo extends CrudRepository<ClientUserModel, Long> {
-
+     ClientUserModel findByEncodesingn(String base);
+	ClientUserModel findByUsername(String username);
 }

@@ -1,5 +1,6 @@
 package com.qris.payment.service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -7,6 +8,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,10 +32,15 @@ public class JwtUserDetailsService implements UserDetailsService {
 	CryptoIntra cryptoIntra;
 
 	public UserDetails loadUserByUsername(String username) {
-		// TODO Auto-generated method stub
-
-		return null;
+		ClientUserModel users = clienRepo.findByUsername(username); 
+		if (username == null) {
+			throw new UsernameNotFoundException("User not found with username: " + username);
+		}
+		return new org.springframework.security.core.userdetails.User(users.getUsername(), users.getPasswordencode(),
+				new ArrayList<>());
 	}
+
+	
 
 	public ClientUserModel save(JsonNode user, String clientIpAddress) {
 		// TODO Auto-generated method stub
@@ -66,7 +73,8 @@ public class JwtUserDetailsService implements UserDetailsService {
 
 	public ClientUserModel check(String authorization) {
 		// TODO Auto-generated method stub
-		return null;
+		ClientUserModel clientUserModel= clienRepo.findByEncodesingn(authorization);
+		return clientUserModel;
 	}
 
 
