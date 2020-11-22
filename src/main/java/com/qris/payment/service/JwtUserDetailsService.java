@@ -13,7 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.qris.payment.model.ClientUserModel;
+import com.qris.payment.model.ClientUser;
 import com.qris.payment.plugin.CryptoIntra;
 import com.qris.payment.repo.ClienRepo;
 
@@ -32,7 +32,7 @@ public class JwtUserDetailsService implements UserDetailsService {
 	CryptoIntra cryptoIntra;
 
 	public UserDetails loadUserByUsername(String username) {
-		ClientUserModel users = clienRepo.findByUsername(username); 
+		ClientUser users = clienRepo.findByUsername(username); 
 		if (username == null) {
 			throw new UsernameNotFoundException("User not found with username: " + username);
 		}
@@ -42,16 +42,16 @@ public class JwtUserDetailsService implements UserDetailsService {
 
 	
 
-	public ClientUserModel save(JsonNode user, String clientIpAddress) {
+	public ClientUser save(JsonNode user, String clientIpAddress) {
 		// TODO Auto-generated method stub
-		ClientUserModel clientUser = new ClientUserModel();
+		ClientUser clientUser = new ClientUser();
 		Base64 base64 = new Base64();
 		clientUser.setFirsname(user.get("firstname").asText());
 		clientUser.setLastname(user.get("lastname").asText());
 		clientUser.setEmail(user.get("email").asText());
 		clientUser.setPhone(user.get("phone").asText());
 		clientUser.setAddress(user.get("address").asText());
-		List<ClientUserModel> listuser= (List<ClientUserModel>) clienRepo.findAll();
+		List<ClientUser> listuser= (List<ClientUser>) clienRepo.findAll();
 		clientUser.setMerchandcode( "ITS" +String.format("%04d", listuser.size()+1));
 		clientUser.setMerchankey(cryptoIntra.randomAlphanum(clientUser.getMerchandcode()+"0123456789", 6));
 		clientUser.setUsername(clientUser.getLastname()+"_" + cryptoIntra.randomAlphanum(clientUser.getLastname()+clientUser.getEmail().replace(".", ""), 4));
@@ -71,9 +71,9 @@ public class JwtUserDetailsService implements UserDetailsService {
 		return clienRepo.save(clientUser);
 	}
 
-	public ClientUserModel check(String authorization) {
+	public ClientUser check(String authorization) {
 		// TODO Auto-generated method stub
-		ClientUserModel clientUserModel= clienRepo.findByEncodesingn(authorization);
+		ClientUser clientUserModel= clienRepo.findByEncodesingn(authorization);
 		return clientUserModel;
 	}
 

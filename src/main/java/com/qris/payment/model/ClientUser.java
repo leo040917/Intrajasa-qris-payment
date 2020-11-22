@@ -22,7 +22,7 @@ import lombok.Data;
 @Entity
 @Table(name = "clientuser")
 @Data
-public class ClientUserModel {
+public class ClientUser {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;

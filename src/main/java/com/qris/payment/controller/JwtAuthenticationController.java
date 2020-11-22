@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.qris.payment.model.ClientUserModel;
+import com.qris.payment.model.ClientUser;
 import com.qris.payment.oauth.JwtTokenUtil;
 import com.qris.payment.plugin.CryptoIntra;
 import com.qris.payment.request.JwtResponse;
@@ -48,7 +48,7 @@ public class JwtAuthenticationController {
 			 {
 		String Authorization = header.getHeader("I-Sign").substring(6);
 		JwtResponse jwtResponse = new JwtResponse();
-		ClientUserModel usersClient = clienservices.check(Authorization);
+		ClientUser usersClient = clienservices.check(Authorization);
 
 		
 
@@ -65,8 +65,7 @@ public class JwtAuthenticationController {
 			e.printStackTrace();
 			logger.info("I-Sign",e.getMessage());			return ResponseEntity.ok("Check I-Sign not the same");	
 					
-		}
-		
+		}		
 		
 
 	}
