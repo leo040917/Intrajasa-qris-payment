@@ -44,26 +44,30 @@ public class JwtAuthenticationController {
 	private JwtUserDetailsService clienservices;
 
 	@RequestMapping(value = "/auth/token", method = RequestMethod.POST)
-	public ResponseEntity<?> createAuthenticationToken(@RequestBody String grant_type, HttpServletRequest header)
-			throws Exception {
+	public ResponseEntity createAuthenticationToken(@RequestBody String grant_type, HttpServletRequest header)
+			 {
 		String Authorization = header.getHeader("I-Sign").substring(6);
 		JwtResponse jwtResponse = new JwtResponse();
 		ClientUserModel usersClient = clienservices.check(Authorization);
 
-		if (usersClient == null) {
+		
 
-			logger.info("Authorization", "Check Authorization not the same");
-
+		try {
+			authenticate(usersClient.getUsername(), usersClient.getPassworddecode());
+			final UserDetails userDetails = clienservices.loadUserByUsername(usersClient.getUsername());
+			final String token = jwtTokenUtil.generateToken(userDetails);
+			jwtResponse.setJwttoken(token);
+			jwtResponse.setToken_type("Bearer");
+			jwtResponse.setExpires_in(jwtTokenUtil.JWT_TOKEN_VALIDITY);
+			return ResponseEntity.ok(jwtResponse);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.info("I-Sign",e.getMessage());			return ResponseEntity.ok("Check I-Sign not the same");	
+					
 		}
-
-		authenticate(usersClient.getUsername(), usersClient.getPassworddecode());
-		final UserDetails userDetails = clienservices.loadUserByUsername(usersClient.getUsername());
-		final String token = jwtTokenUtil.generateToken(userDetails);
-		jwtResponse.setJwttoken(token);
-		jwtResponse.setToken_type("Bearer");
-		jwtResponse.setExpires_in(jwtTokenUtil.JWT_TOKEN_VALIDITY);
-
-		return ResponseEntity.ok(jwtResponse);
+		
+		
 
 	}
 
