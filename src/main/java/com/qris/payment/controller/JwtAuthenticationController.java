@@ -23,7 +23,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.qris.payment.model.ClientUser;
 import com.qris.payment.oauth.JwtTokenUtil;
 import com.qris.payment.plugin.CryptoIntra;
-import com.qris.payment.request.JwtResponse;
+import com.qris.payment.response.GeneralResponse;
+import com.qris.payment.response.JwtResponse;
 import com.qris.payment.service.JwtUserDetailsService;
 
 @RestController
@@ -63,7 +64,7 @@ public class JwtAuthenticationController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			logger.info("I-Sign",e.getMessage());			return ResponseEntity.ok("Check I-Sign not the same");	
+			logger.info("I-Sign",e.getMessage());			return ResponseEntity.ok(new GeneralResponse(014, "Invalid Sign Generated User and password To base64", Authorization));	
 					
 		}		
 		

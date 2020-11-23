@@ -1,4 +1,4 @@
-package com.qris.payment.request;
+package com.qris.payment.response;
 
 import java.io.Serializable;
 
