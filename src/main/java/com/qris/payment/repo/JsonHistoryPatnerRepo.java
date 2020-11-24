@@ -7,7 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 
 import com.qris.payment.model.JsonHistoryPatner;
 
-public interface JsonHistoryRepo extends CrudRepository<JsonHistoryPatner, Long> {
+public interface JsonHistoryPatnerRepo extends CrudRepository<JsonHistoryPatner, Long> {
 	 @Query(value ="select * from jsonhistorypatner where  to_char(request_time, 'DD-MM-YYYY')=?1", 
 			   nativeQuery = true)
 	List<JsonHistoryPatner> findByfindNumber(String time);

@@ -54,7 +54,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		httpSecurity.csrf().disable()
 				// dont authenticate this particular request
 //		"/emoney/qris/shopepay"
-				.authorizeRequests().antMatchers("/payment/register","/payment/auth/token","/payment/ipay88/callback/shopepay","/generated/generatedSignatur").permitAll().
+				.authorizeRequests().antMatchers("/payment/register","/payment/auth/token","/payment/ipay88/callback","/generated/generatedSignatur","/payment/emoney/ipay88/backend").permitAll().
 				// all other requests need to be authenticated
 				anyRequest().authenticated().and().
 				// make sure we use stateless session; session won't be used to

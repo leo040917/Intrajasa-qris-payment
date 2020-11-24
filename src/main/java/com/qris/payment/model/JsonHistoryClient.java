@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import org.hibernate.validator.constraints.Length;
+import org.springframework.http.HttpStatus;
 
 import lombok.Data;
 

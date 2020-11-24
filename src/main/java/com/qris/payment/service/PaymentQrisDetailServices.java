@@ -1,10 +1,10 @@
 package com.qris.payment.service;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
-
-import javax.net.ssl.SSLEngineResult.Status;
-import javax.transaction.Transaction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,26 +22,30 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.qris.payment.controller.PaymentQrisController;
 import com.qris.payment.enums.TransactionFlex;
 import com.qris.payment.model.ClientUser;
 import com.qris.payment.model.JsonHistoryClient;
 import com.qris.payment.model.JsonHistoryPatner;
 import com.qris.payment.model.TransactionQris;
 import com.qris.payment.repo.ClienRepo;
-import com.qris.payment.repo.JsonHistoryRepo;
+import com.qris.payment.repo.JsonHistoryClienRepo;
+import com.qris.payment.repo.JsonHistoryPatnerRepo;
 import com.qris.payment.repo.TransactionRepo;
 
-import springfox.documentation.spring.web.json.Json;
+import lombok.Data;
 
 @Service
+@Data
 public class PaymentQrisDetailServices {
 	private final static Logger logger = LoggerFactory.getLogger(PaymentQrisDetailServices.class);
 	@Autowired
 	private TransactionRepo traRepo;
 
 	@Autowired
-	private JsonHistoryRepo historyRepo;
+	private JsonHistoryPatnerRepo historyRepo;
+	
+	@Autowired
+	private JsonHistoryClienRepo jsonhistoryclien;
 
 	@Autowired
 	private ClienRepo clienRepo;
@@ -78,7 +82,7 @@ public class PaymentQrisDetailServices {
 
 			TransactionQris qris = new TransactionQris();
 			qris.setTransactionNumber(root.get("TransId").asText());
-			qris.setAmount(root.get("Amount").asText());
+			qris.setAmount(root.get("Amount").asText().substring(0,3));
 			qris.setFlextrs(TransactionFlex.UNPAID);
 			qris.setCreateDate(new Date());
 			qris.setReturncallbackend(0);
@@ -93,42 +97,56 @@ public class PaymentQrisDetailServices {
 	}
 
 	public JsonNode sendCallBack(JsonNode param) throws JsonMappingException, JsonProcessingException {
-		JsonHistoryPatner historyPatner = historyRepo.findByRefno(param.get("RefNo").asText());
-		TransactionQris transaction = traRepo.findByJsonHistoryPatner(historyPatner);
+//	
+	    TransactionQris transaction = traRepo.findByTransactionNumber(param.get("TransId").asText());
 		Optional<ClientUser> clientUser = clienRepo.findById(transaction.getClientuser_id());
+		JsonHistoryPatner historyPatner = historyRepo.findByRefno(param.get("RefNo").asText());
 		System.out.println(clientUser);
-
+          historyPatner.setCallBackend(param.toString());
+          historyPatner.setCallbackTime(new Date());
+          historyRepo.save(historyPatner);
 		transaction.setFlextrs(TransactionFlex.PAID);
 		traRepo.save(transaction);
 		JsonHistoryClient historyClient = new JsonHistoryClient();
 		historyClient.setRequestmsg(transaction.toString());
 		historyClient.setRequestTime(new Date());
-
+		historyClient.setTransaksi_Id(String.valueOf(transaction.getId()));
+		
+		String url = clientUser.get().getUrlBackend();
 		RestTemplate restTemplate = new RestTemplate();
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE.toString());
-		HttpEntity formEntity = new HttpEntity<String>(transaction.toString(), headers);
-		ObjectMapper mappers = new ObjectMapper();
-		ResponseEntity<String> responseEntityStr = restTemplate.postForEntity(clientUser.get().getUrlBackend(),
-				formEntity, String.class);
 
-		JsonNode root;
-		root = mappers.readTree(responseEntityStr.getBody());
+		// create headers
+		HttpHeaders headers = new HttpHeaders();
+		// set `content-type` header
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		// set `accept` header
+		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+       
+		// request body parameters
+		Map<String, Object> map = new HashMap<>();
+		map.put("TransId", transaction.getTransactionNumber());
+		map.put("Amount",transaction.getAmount());
+		map.put("Status", transaction.getFlextrs());
+
+		// build the request
+		HttpEntity<Map<String, Object>> entity = new HttpEntity<>(map, headers);
+
+		// send POST request
+		ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+		ObjectMapper mappers = new ObjectMapper();
+		JsonNode root = mappers.readTree(response.getBody());
 		String jsonResponse = mappers.writerWithDefaultPrettyPrinter().writeValueAsString(root);
-		
-		
-		historyClient.setResponsemsg(root.toString());
+		logger.info("Response :" + jsonResponse);
+		historyClient.setResponsemsg(jsonResponse);
 		historyClient.setResponseTime(new Date());
 		
 		historyClient.setResponsecode(root.get("code").asText());
 		historyClient.setResponsemessage(root.get("message").asText());
-		
+		jsonhistoryclien.save(historyClient);
 		ObjectNode callbackClient = JsonNodeFactory.instance.objectNode();
 
-		((ObjectNode) param).put("code", "200");
-		((ObjectNode) param).put("message", "Sukses");
-		((ObjectNode) param).put("data", param.toString());
-		return callbackClient;
+
+		return root;
 	}
 
 }

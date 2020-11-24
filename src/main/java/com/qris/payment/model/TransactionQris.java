@@ -9,6 +9,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.qris.payment.enums.TransactionFlex;
 import lombok.Data;
 
@@ -36,9 +38,9 @@ public class TransactionQris implements Serializable{
 	@Column
 	private  Date createDate;
 	
-	
+	@JsonIgnore
 	@OneToOne
-//	@JsonIgnore
+	
 	private JsonHistoryPatner jsonHistoryPatner;
 	
 	
