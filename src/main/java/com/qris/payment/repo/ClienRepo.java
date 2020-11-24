@@ -7,4 +7,5 @@ import com.qris.payment.model.ClientUser;
 public interface ClienRepo extends CrudRepository<ClientUser, Long> {
      ClientUser findByEncodesingn(String base);
 	ClientUser findByUsername(String username);
+	
 }

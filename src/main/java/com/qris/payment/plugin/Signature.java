@@ -1,12 +1,14 @@
 package com.qris.payment.plugin;
 
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,7 +24,24 @@ public class Signature {
 		return hash.equals(param);
 	}
 	
-	
+	public String encrypt(String password) {
+		MessageDigest md;
+		try {
+			md = MessageDigest.getInstance("SHA");
+			md.update(password.getBytes("UTF-8"));
+			byte raw[] = md.digest();
+			String encodedString = new String(new Base64().encode(raw));
+			return encodedString;
+		}
+
+		catch (NoSuchAlgorithmException e) {
+		}
+
+		catch (java.io.UnsupportedEncodingException e) {
+		}
+
+		return null;
+	}
 	
 
 }

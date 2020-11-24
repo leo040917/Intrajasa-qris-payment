@@ -11,5 +11,7 @@ public interface JsonHistoryRepo extends CrudRepository<JsonHistoryPatner, Long>
 	 @Query(value ="select * from jsonhistorypatner where  to_char(request_time, 'DD-MM-YYYY')=?1", 
 			   nativeQuery = true)
 	List<JsonHistoryPatner> findByfindNumber(String time);
-
+    
+	 JsonHistoryPatner findByRefno(String ref);
+	 
 }

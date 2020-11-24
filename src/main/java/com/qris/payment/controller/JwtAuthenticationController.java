@@ -47,7 +47,7 @@ public class JwtAuthenticationController {
 	@RequestMapping(value = "/auth/token", method = RequestMethod.POST)
 	public ResponseEntity createAuthenticationToken(@RequestBody String grant_type, HttpServletRequest header)
 			 {
-		String Authorization = header.getHeader("I-Sign").substring(6);
+		String Authorization = header.getHeader("Authorization").substring(6);
 		JwtResponse jwtResponse = new JwtResponse();
 		ClientUser usersClient = clienservices.check(Authorization);
 
@@ -64,7 +64,7 @@ public class JwtAuthenticationController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			logger.info("I-Sign",e.getMessage());			return ResponseEntity.ok(new GeneralResponse(014, "Invalid Sign Generated User and password To base64", Authorization));	
+			logger.info("Authorization",e.getMessage());			return ResponseEntity.ok(new GeneralResponse(014, "Invalid Sign Generated User and password To base64", Authorization));	
 					
 		}		
 		

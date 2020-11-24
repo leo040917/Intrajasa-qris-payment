@@ -55,9 +55,7 @@ public class ClientUser  implements Serializable {
 	@Column
 	private String merchankey;
 	@Column
-
 	private String username;
-	
 	@Column	
 	@JsonIgnore
 	private String passwordencode;

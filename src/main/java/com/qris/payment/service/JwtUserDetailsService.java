@@ -78,4 +78,13 @@ public class JwtUserDetailsService implements UserDetailsService {
 	}
 
 
+
+	public ClientUser checkUser(String username) {
+		// TODO Auto-generated method stub
+		
+		ClientUser clientUserModel= clienRepo.findByUsername(username);
+		return clientUserModel;
+	}
+
+
 }
