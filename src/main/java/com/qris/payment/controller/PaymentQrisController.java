@@ -80,7 +80,7 @@ public class PaymentQrisController {
 		Instant instant = Instant.now();
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 		instant = timestamp.toInstant();
-		String StringToSign = HTTPMethod + ":" + clientUser.getMerchandcode() + sha256hexnode.toLowerCase();
+		String StringToSign = HTTPMethod + ":" + header.getHeader("X-merchant-code") + sha256hexnode.toLowerCase();
 		System.out.println("StringToSign :" + StringToSign);
 		
 		String param =header.getHeader("X-Intra-Signature");
@@ -213,7 +213,7 @@ public class PaymentQrisController {
 		ObjectNode callbackClient = JsonNodeFactory.instance.objectNode();
 		((ObjectNode) callbackClient).put("code", "200");
 		((ObjectNode) callbackClient).put("message", "Sukses");
-		((ObjectNode) callbackClient).put("data", body);
+//		((ObjectNode) callbackClient).put("data", body);
 		
 	
 		return callbackClient;

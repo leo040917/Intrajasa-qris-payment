@@ -11,9 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -43,7 +45,7 @@ public class PaymentQrisDetailServices {
 
 	@Autowired
 	private JsonHistoryPatnerRepo historyRepo;
-	
+
 	@Autowired
 	private JsonHistoryClienRepo jsonhistoryclien;
 
@@ -82,7 +84,7 @@ public class PaymentQrisDetailServices {
 
 			TransactionQris qris = new TransactionQris();
 			qris.setTransactionNumber(root.get("TransId").asText());
-			qris.setAmount(root.get("Amount").asText().substring(0,3));
+			qris.setAmount(root.get("Amount").asText().substring(0, 3));
 			qris.setFlextrs(TransactionFlex.UNPAID);
 			qris.setCreateDate(new Date());
 			qris.setReturncallbackend(0);
@@ -98,20 +100,20 @@ public class PaymentQrisDetailServices {
 
 	public JsonNode sendCallBack(JsonNode param) throws JsonMappingException, JsonProcessingException {
 //	
-	    TransactionQris transaction = traRepo.findByTransactionNumber(param.get("TransId").asText());
+		TransactionQris transaction = traRepo.findByTransactionNumber(param.get("TransId").asText());
 		Optional<ClientUser> clientUser = clienRepo.findById(transaction.getClientuser_id());
 		JsonHistoryPatner historyPatner = historyRepo.findByRefno(param.get("RefNo").asText());
 		System.out.println(clientUser);
-          historyPatner.setCallBackend(param.toString());
-          historyPatner.setCallbackTime(new Date());
-          historyRepo.save(historyPatner);
+		historyPatner.setCallBackend(param.toString());
+		historyPatner.setCallbackTime(new Date());
+		historyRepo.save(historyPatner);
 		transaction.setFlextrs(TransactionFlex.PAID);
 		traRepo.save(transaction);
 		JsonHistoryClient historyClient = new JsonHistoryClient();
 		historyClient.setRequestmsg(transaction.toString());
 		historyClient.setRequestTime(new Date());
 		historyClient.setTransaksi_Id(String.valueOf(transaction.getId()));
-		
+
 		String url = clientUser.get().getUrlBackend();
 		RestTemplate restTemplate = new RestTemplate();
 
@@ -121,32 +123,56 @@ public class PaymentQrisDetailServices {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		// set `accept` header
 		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-       
+
 		// request body parameters
 		Map<String, Object> map = new HashMap<>();
 		map.put("TransId", transaction.getTransactionNumber());
-		map.put("Amount",transaction.getAmount());
+		map.put("Refno", historyPatner.getRefno());
+		map.put("Amount", transaction.getAmount());
 		map.put("Status", transaction.getFlextrs());
 
 		// build the request
 		HttpEntity<Map<String, Object>> entity = new HttpEntity<>(map, headers);
 
 		// send POST request
-		ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-		ObjectMapper mappers = new ObjectMapper();
-		JsonNode root = mappers.readTree(response.getBody());
-		String jsonResponse = mappers.writerWithDefaultPrettyPrinter().writeValueAsString(root);
-		logger.info("Response :" + jsonResponse);
-		historyClient.setResponsemsg(jsonResponse);
-		historyClient.setResponseTime(new Date());
+//		ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+		 JsonNode callbackClient = JsonNodeFactory.instance.objectNode();
+		try {
+			ObjectMapper mappers = new ObjectMapper();
+	
+			
+			ResponseEntity<String> out = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+			callbackClient = mappers.readTree(out.getBody());
+			
+			String jsonResponse = mappers.writerWithDefaultPrettyPrinter().writeValueAsString(callbackClient);
+			logger.info("Response :" + jsonResponse);
 		
-		historyClient.setResponsecode(root.get("code").asText());
-		historyClient.setResponsemessage(root.get("message").asText());
+			historyClient.setResponseTime(new Date());
+
+		
+		
+			jsonhistoryclien.save(historyClient);
+		} catch (HttpStatusCodeException e) {
+			// TODO: handle exception
+			  int statusCode = e.getStatusCode().value();
+			  System.out.println("erro"+statusCode);
+; 		;
+			  ((ObjectNode) callbackClient).put("code", e.getStatusCode().value());
+			  ((ObjectNode) callbackClient).put("message", e.getStatusCode().name());
+				
+			
+				
+		}
+		historyClient.setResponsemsg(callbackClient.toString());
+		historyClient.setResponsecode(callbackClient.get("code").asText());
+		historyClient.setResponsemessage(callbackClient.get("message").asText());
+		historyClient.setResponseTime(new Date());
 		jsonhistoryclien.save(historyClient);
-		ObjectNode callbackClient = JsonNodeFactory.instance.objectNode();
-
-
-		return root;
+		
+				
+			return callbackClient;
+	
 	}
+	
 
 }
