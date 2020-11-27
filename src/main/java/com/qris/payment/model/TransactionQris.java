@@ -31,6 +31,8 @@ public class TransactionQris implements Serializable{
 	private  String amount;
 	
 	
+	
+	
 	@Column
 	private  TransactionFlex flextrs;
 	

@@ -54,10 +54,15 @@ public class PaymentQrisDetailServices {
 
 	public JsonNode sendPatner(JsonNode request, ClientUser client) throws JsonProcessingException {
 		// TODO Auto-generated method stub
-		ObjectMapper mapper = new ObjectMapper();
-		String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
-
+		TransactionQris qris = new TransactionQris();
+		qris.setAmount(request.get("Amount").asText());
 		JsonHistoryPatner historyPatner = new JsonHistoryPatner();
+		ObjectMapper mapper = new ObjectMapper();
+		((ObjectNode) request).put("Amount", request.get("Amount").asText()+00);
+		
+		String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
+        System.out.println("request :"  +  json);
+		
 		historyPatner.setRequestmsg(json);
 		historyPatner.setRequestTime(new Date());
 		historyPatner.setRefno(request.get("RefNo").asText());
@@ -69,6 +74,8 @@ public class PaymentQrisDetailServices {
 		ResponseEntity<String> responseEntityStr = restTemplate.postForEntity(
 				"https://payment.ipay88.co.id/ePayment/WebService/PaymentAPI/Checkout", formEntity, String.class);
 		JsonNode root = mappers.readTree(responseEntityStr.getBody());
+		((ObjectNode) root).put("Amount", qris.getAmount());
+		
 		String jsonResponse = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
 		logger.info("Response :" + jsonResponse);
 		historyPatner.setResponsemsg(jsonResponse);
@@ -80,10 +87,8 @@ public class PaymentQrisDetailServices {
 		historyPatner.setResponsemessage(rpsmsg);
 		historyRepo.save(historyPatner);
 		if ("6".equals(root.get("Status").asText())) {
-
-			TransactionQris qris = new TransactionQris();
+			
 			qris.setTransactionNumber(root.get("TransId").asText());
-			qris.setAmount(root.get("Amount").asText().substring(0, 3));
 			qris.setFlextrs(TransactionFlex.UNPAID);
 			qris.setCreateDate(new Date());
 			qris.setReturncallbackend(0);

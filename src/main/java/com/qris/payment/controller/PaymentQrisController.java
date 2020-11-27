@@ -119,7 +119,7 @@ public class PaymentQrisController {
 		((ObjectNode) body).put("MerchantCode", merchancode);
 //		((ObjectNode) body).put("RefNo", Refno.replace("-", ""));
 		((ObjectNode) body).put("PaymentId",payment);
-		((ObjectNode) body).put("Amount",body.get("Amount").asInt()+ Integer.valueOf("00"));
+		((ObjectNode) body).put("Amount",body.get("Amount").asInt());
 				
 //		Signatur Patner
 		String sha1hex = key + merchancode + body.get("RefNo").asText() + body.get("Amount").asText()
