@@ -68,7 +68,6 @@ public class PaymentQrisDetailServices {
 		ObjectMapper mappers = new ObjectMapper();
 		ResponseEntity<String> responseEntityStr = restTemplate.postForEntity(
 				"https://payment.ipay88.co.id/ePayment/WebService/PaymentAPI/Checkout", formEntity, String.class);
-
 		JsonNode root = mappers.readTree(responseEntityStr.getBody());
 		String jsonResponse = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
 		logger.info("Response :" + jsonResponse);
@@ -92,6 +91,8 @@ public class PaymentQrisDetailServices {
 			qris.setJsonHistoryPatner(historyPatner);
 			qris.setClientuser_id(client.getId());
 			traRepo.save(qris);
+			((ObjectNode) root).remove("ErrDesc");
+			((ObjectNode) root).put("massage","Sukses");
 
 		}
 
@@ -110,9 +111,7 @@ public class PaymentQrisDetailServices {
 		transaction.setFlextrs(TransactionFlex.PAID);
 		traRepo.save(transaction);
 		JsonHistoryClient historyClient = new JsonHistoryClient();
-		historyClient.setRequestmsg(transaction.toString());
-		historyClient.setRequestTime(new Date());
-		historyClient.setTransaksi_Id(String.valueOf(transaction.getId()));
+		
 
 		String url = clientUser.get().getUrlBackend();
 		RestTemplate restTemplate = new RestTemplate();
@@ -133,7 +132,14 @@ public class PaymentQrisDetailServices {
 
 		// build the request
 		HttpEntity<Map<String, Object>> entity = new HttpEntity<>(map, headers);
-
+		
+		ObjectMapper jsonmap = new ObjectMapper();
+		String jsonRequest = jsonmap.writerWithDefaultPrettyPrinter().writeValueAsString(map);
+		
+		historyClient.setRequestmsg(jsonRequest);
+		
+		historyClient.setRequestTime(new Date());
+		historyClient.setTransaksi_Id(String.valueOf(transaction.getId()));
 		// send POST request
 //		ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
 		 JsonNode callbackClient = JsonNodeFactory.instance.objectNode();

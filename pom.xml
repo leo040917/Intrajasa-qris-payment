@@ -12,7 +12,7 @@
 
 	<groupId>com.qris</groupId>
 	<artifactId>Intrajasa-qris-payment</artifactId>
-	<version>1.0.4-SNAPSHOT</version>
+	<version>1.0.5-SNAPSHOT</version>
 	<name>Intrajasa-qris-payment</name>
 	<description>project pembayaran mengunkan QRIS code</description>
 

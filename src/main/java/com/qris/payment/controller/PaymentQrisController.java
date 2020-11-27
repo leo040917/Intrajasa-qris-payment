@@ -119,7 +119,7 @@ public class PaymentQrisController {
 		((ObjectNode) body).put("MerchantCode", merchancode);
 //		((ObjectNode) body).put("RefNo", Refno.replace("-", ""));
 		((ObjectNode) body).put("PaymentId",payment);
-		((ObjectNode) body).put("Amount",body.get("Amount").asText()+"00");
+		((ObjectNode) body).put("Amount",body.get("Amount").asInt()+ Integer.valueOf("00"));
 				
 //		Signatur Patner
 		String sha1hex = key + merchancode + body.get("RefNo").asText() + body.get("Amount").asText()
@@ -161,11 +161,12 @@ public class PaymentQrisController {
 		JsonNode Response= paymentServices.sendPatner(request,clientUser);
 		((ObjectNode) Response).remove("MerchantCode");
 		((ObjectNode) Response).remove("PaymentId");
-		((ObjectNode) Response).remove("RefNo");
+		((ObjectNode) Response).remove("CheckoutURL");
 		((ObjectNode) Response).remove("Signature");
 		((ObjectNode) Response).remove("xfield1");
 		((ObjectNode) Response).remove("AuthCode");
 		
+	
 		return ResponseEntity.ok(Response);
 		
 	} 
