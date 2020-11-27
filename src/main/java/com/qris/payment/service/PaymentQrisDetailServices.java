@@ -58,30 +58,31 @@ public class PaymentQrisDetailServices {
 		qris.setAmount(request.get("Amount").asText());
 		JsonHistoryPatner historyPatner = new JsonHistoryPatner();
 		ObjectMapper mapper = new ObjectMapper();
-		((ObjectNode) request).put("Amount", request.get("Amount").asText()+00);
-		
-		String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
-        System.out.println("request :"  +  json);
-		
-		historyPatner.setRequestmsg(json);
+		((ObjectNode) request).put("Amount", request.get("Amount").asText()+"00");
+		String jsonrequestipay = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
+        System.out.println("request ke system Ipay :"  +  jsonrequestipay);
+        logger.info("request ke system Ipay",  jsonrequestipay);
+		historyPatner.setRequestmsg(jsonrequestipay);
 		historyPatner.setRequestTime(new Date());
 		historyPatner.setRefno(request.get("RefNo").asText());
 		RestTemplate restTemplate = new RestTemplate();
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE.toString());
-		HttpEntity formEntity = new HttpEntity<String>(json, headers);
+		HttpEntity formEntity = new HttpEntity<String>(jsonrequestipay, headers);
 		ObjectMapper mappers = new ObjectMapper();
+		
+		
 		ResponseEntity<String> responseEntityStr = restTemplate.postForEntity(
 				"https://payment.ipay88.co.id/ePayment/WebService/PaymentAPI/Checkout", formEntity, String.class);
 		JsonNode root = mappers.readTree(responseEntityStr.getBody());
-		((ObjectNode) root).put("Amount", qris.getAmount());
-		
+				
 		String jsonResponse = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
 		logger.info("Response :" + jsonResponse);
 		historyPatner.setResponsemsg(jsonResponse);
 		historyPatner.setResponseTime(new Date());
 		historyPatner.setCallBackend(null);
 		historyPatner.setCallbackTime(null);
+		((ObjectNode) root).put("Amount", qris.getAmount());
 		historyPatner.setResponsecode(root.get("Status").asText());
 		String rpsmsg = root.get("ErrDesc").asText().equals("") ? "Sukses" : root.get("ErrDesc").asText();
 		historyPatner.setResponsemessage(rpsmsg);

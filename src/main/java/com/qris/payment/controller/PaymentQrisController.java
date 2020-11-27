@@ -74,6 +74,8 @@ public class PaymentQrisController {
 	public ResponseEntity ipay88(@RequestBody JsonNode body, @AuthenticationPrincipal UserDetails details,
 			HttpServletRequest header) throws JsonProcessingException 
 	{
+		logger.info("Request Client", body);
+		
 		ClientUser clientUser= clientservices.checkUser(details.getUsername());
 		String sha256hexnode = DigestUtils.sha256Hex(body.toString());
 		String HTTPMethod = "POST";
@@ -87,6 +89,9 @@ public class PaymentQrisController {
 		
 		try {
 			boolean signaturSystem = signature.generated(StringToSign,clientUser.getMerchankey(),param);
+			
+			logger.info("signaturSystem Client", signaturSystem);
+			
 		} catch (InvalidKeyException | NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -122,11 +127,13 @@ public class PaymentQrisController {
 		((ObjectNode) body).put("Amount",body.get("Amount").asInt());
 				
 //		Signatur Patner
-		String sha1hex = key + merchancode + body.get("RefNo").asText() + body.get("Amount").asText()
+		String sha1hex = key + merchancode + body.get("RefNo").asText() + body.get("Amount").asText()+"00"
 				+ body.get("Currency").asText();
-		System.out.println(" sha1hex"+ sha1hex);
+		
+		System.out.println(" Signature decode "+ sha1hex);
+		logger.info("Signature decode", sha1hex);
 		String generedsignature =signature.encrypt(sha1hex);
-//		System.out.println("Signature Generated :" + generedsignature);
+		System.out.println("Signature Generated :" + generedsignature);
 		logger.info("Signature Generated", generedsignature);
 
 		((ObjectNode) body).put("Lang","UTF-8");
@@ -157,7 +164,9 @@ public class PaymentQrisController {
 		listsellers.add(sellers);
 		((ObjectNode) body).set("Sellers", new ObjectMapper().valueToTree(listsellers));
 		JsonNode request = body;
-		logger.info("Request Param" + request);
+		ObjectMapper mappers = new ObjectMapper();
+		String requestpatner = mappers.writerWithDefaultPrettyPrinter().writeValueAsString(request);
+	     logger.info("Request patner" + requestpatner);
 		JsonNode Response= paymentServices.sendPatner(request,clientUser);
 		((ObjectNode) Response).remove("MerchantCode");
 		((ObjectNode) Response).remove("PaymentId");
