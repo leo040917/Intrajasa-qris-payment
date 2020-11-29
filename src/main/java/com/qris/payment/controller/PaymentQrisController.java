@@ -139,7 +139,7 @@ public class PaymentQrisController {
 		((ObjectNode) body).put("Lang","UTF-8");
 		((ObjectNode) body).put("Signature", generedsignature);
 		((ObjectNode) body).put("ResponseURL","");
-		((ObjectNode) body).put("BackendURL","http://182.23.65.25:8890/payment/ipay88/callback/shopepay");
+		((ObjectNode) body).put("BackendURL","http://182.23.65.25:8890/payment/ipay88/callback");
 		((ObjectNode) body).put("xfield1","");
 		
 		List<Sellers> listsellers =new ArrayList<>();

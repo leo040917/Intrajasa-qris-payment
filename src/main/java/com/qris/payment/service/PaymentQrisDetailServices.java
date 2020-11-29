@@ -161,7 +161,10 @@ public class PaymentQrisDetailServices {
 		
 			historyClient.setResponseTime(new Date());
 
-		
+			historyClient.setResponsemsg(callbackClient.toString());
+			historyClient.setResponsecode(callbackClient.get("code").asText());
+			historyClient.setResponsemessage(callbackClient.get("message").asText());
+			historyClient.setResponseTime(new Date());
 		
 			jsonhistoryclien.save(historyClient);
 		} catch (HttpStatusCodeException e) {
@@ -175,10 +178,7 @@ public class PaymentQrisDetailServices {
 			
 				
 		}
-		historyClient.setResponsemsg(callbackClient.toString());
-		historyClient.setResponsecode(callbackClient.get("code").asText());
-		historyClient.setResponsemessage(callbackClient.get("message").asText());
-		historyClient.setResponseTime(new Date());
+
 		jsonhistoryclien.save(historyClient);
 		
 				
